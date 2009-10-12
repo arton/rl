@@ -3,17 +3,23 @@
 
 require 'readline'
 
-IO.popen("cmd.exe /A", "a") do |cmd|
-  Thread.start do
-    while s = cmd.gets.rstrip
-      puts s
+IO.popen("cmd.exe /A /Q", "a") do |cmd|
+  loop do
+    buf = Readline.readline('', true)
+    if buf.nil?
+      cmd.puts "\x1a"
+      puts
+    else 
+      Readline::HISTORY.pop if buf =~ /\A\s*\Z/
+      if buf.size == 0
+        cmd.puts "\x1a"
+      elsif buf == 'exit'
+        exit 0
+      else
+        p "-#{buf.length}-#{buf}--" if $DEBUG
+        cmd.puts buf
+      end
     end
-  end
-  while buf = Readline.readline('', true)
-    if buf == 'exit'
-      exit 0
-    end
-    cmd.puts buf
   end
 end
 
