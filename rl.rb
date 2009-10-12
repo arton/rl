@@ -3,7 +3,15 @@
 
 require 'readline'
 
-IO.popen("cmd.exe /A /Q", "a") do |cmd|
+def mode(m)
+  if m == 'vi'
+    Readline.vi_editing_mode
+  elsif m == 'emacs'  
+    Readline.emacs_editing_mode
+  end
+end
+
+IO.popen("#{ENV['ComSpec']} /A /Q", "w") do |cmd|
   loop do
     buf = Readline.readline('', true)
     if buf.nil?
@@ -15,6 +23,9 @@ IO.popen("cmd.exe /A /Q", "a") do |cmd|
         cmd.puts "\x1a"
       elsif buf == 'exit'
         exit 0
+      elsif buf[0] == ?:
+        mode buf[1..-1].lstrip
+        cmd.puts
       else
         p "-#{buf.length}-#{buf}--" if $DEBUG
         cmd.puts buf
